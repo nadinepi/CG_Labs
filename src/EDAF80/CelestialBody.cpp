@@ -32,17 +32,17 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds elapsed_time,
 
     glm::mat4 rotation_matrix = glm::rotate(glm::mat4(1.0f), _body.spin.rotation_angle, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glm::mat4 rotation_matrix_axis = glm::rotate(glm::mat4(1.0f), _body.spin.axial_tilt, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 axial_tilt_matrix = glm::rotate(glm::mat4(1.0f), _body.spin.axial_tilt, glm::vec3(0.0f, 0.0f, 1.0f));
 
-    glm::mat4 translation_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(_body.orbit.radius, 0.0f, 0.0f));
+    glm::mat4 orbit_translation_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(_body.orbit.radius, 0.0f, 0.0f));
 
-    glm::mat4 orbit_matrix = glm::rotate(glm::mat4(1.0f), _body.orbit.rotation_angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 orbit_movement_matrix = glm::rotate(glm::mat4(1.0f), _body.orbit.rotation_angle, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glm::mat4 orbit_matrix_axis = glm::rotate(glm::mat4(1.0f), _body.orbit.inclination, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 orbit_tilt_matrix = glm::rotate(glm::mat4(1.0f), _body.orbit.inclination, glm::vec3(0.0f, 0.0f, 1.0f));
 
-	glm::mat4 children_transform = parent_transform * orbit_matrix_axis * orbit_matrix * translation_matrix * rotation_matrix_axis;
+	glm::mat4 children_transform = parent_transform * orbit_tilt_matrix * orbit_movement_matrix * orbit_translation_matrix * axial_tilt_matrix;
 
-    glm::mat4 world = parent_transform * orbit_matrix_axis * orbit_matrix * translation_matrix * scaling_matrix * rotation_matrix_axis * rotation_matrix;
+    glm::mat4 world = parent_transform * orbit_tilt_matrix * orbit_movement_matrix * orbit_translation_matrix * scaling_matrix * axial_tilt_matrix * rotation_matrix;
 
     if (show_basis) {
         bonobo::renderBasis(1.0f, 2.0f, view_projection, world);
@@ -58,6 +58,19 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds elapsed_time,
 
     return children_transform;
 }
+
+void CelestialBody::renderAll(std::chrono::microseconds elapsed_time,
+                                glm::mat4 const& view_projection,
+                                glm::mat4 const& parent_transform,
+                                bool show_basis) {
+
+    glm::mat4 new_parent = render(elapsed_time, view_projection, parent_transform, show_basis);
+    for (const auto& c : _children) {
+        c->renderAll(elapsed_time, view_projection, new_parent, show_basis);
+    }
+}
+
+
 
 void CelestialBody::add_child(CelestialBody* child) {
     _children.push_back(child);

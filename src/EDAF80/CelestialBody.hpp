@@ -51,6 +51,11 @@ public:
 	                 glm::mat4 const& parent_transform = glm::mat4(1.0f),
 	                 bool show_basis = false);
 
+	void renderAll(std::chrono::microseconds elapsed_time,
+	                 glm::mat4 const& view_projection,
+	                 glm::mat4 const& parent_transform = glm::mat4(1.0f),
+	                 bool show_basis = false);
+
 	//! \brief Mark another celestial body as being “attached” to the current one.
 	void add_child(CelestialBody* child);
 
