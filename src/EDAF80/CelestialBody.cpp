@@ -34,6 +34,9 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds elapsed_time,
 
     glm::mat4 axial_tilt_matrix = glm::rotate(glm::mat4(1.0f), _body.spin.axial_tilt, glm::vec3(0.0f, 0.0f, 1.0f));
 
+    glm::mat4 r_orbit_movement_matrix = glm::rotate(glm::mat4(1.0f), -_body.orbit.rotation_angle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+
     glm::mat4 orbit_translation_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(_body.orbit.radius, 0.0f, 0.0f));
 
     glm::mat4 orbit_movement_matrix = glm::rotate(glm::mat4(1.0f), _body.orbit.rotation_angle, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -42,7 +45,7 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds elapsed_time,
 
 	glm::mat4 children_transform = parent_transform * orbit_tilt_matrix * orbit_movement_matrix * orbit_translation_matrix * axial_tilt_matrix;
 
-    glm::mat4 world = parent_transform * orbit_tilt_matrix * orbit_movement_matrix * orbit_translation_matrix * scaling_matrix * axial_tilt_matrix * rotation_matrix;
+    glm::mat4 world = parent_transform * orbit_tilt_matrix * orbit_movement_matrix * orbit_translation_matrix * scaling_matrix * r_orbit_movement_matrix * axial_tilt_matrix * rotation_matrix;
 
     if (show_basis) {
         bonobo::renderBasis(1.0f, 2.0f, view_projection, world);
