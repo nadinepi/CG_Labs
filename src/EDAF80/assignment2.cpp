@@ -41,7 +41,7 @@ edaf80::Assignment2::~Assignment2() {
 
 void edaf80::Assignment2::run() {
     // Load the sphere geometry
-    auto const shape = parametric_shapes::createCircleRing(0.5f, 0.4f, 40u, 4u);
+    auto const shape = parametric_shapes::createTorus(1.0f, 0.8f, 4u, 100u);
     if (shape.vao == 0u)
         return;
 
