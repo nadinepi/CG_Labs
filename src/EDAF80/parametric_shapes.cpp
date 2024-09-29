@@ -172,9 +172,6 @@ parametric_shapes::createSphere(float const radius,
             texcoords[index] = glm::vec3(static_cast<float>(j) / (static_cast<float>(longitude_edges_count)),
                                          static_cast<float>(i) / (static_cast<float>(latitude_edges_count)),
                                          0.0f);
-
-            std::cout << static_cast<float>(j) / (static_cast<float>(longitude_edges_count)) << std::endl;
-
             theta += d_theta;
             ++index;
         }
@@ -274,16 +271,16 @@ parametric_shapes::createTorus(float const major_radius,
     auto tangents = std::vector<glm::vec3>(total_vertices);
     auto binormals = std::vector<glm::vec3>(total_vertices);
 
-    float const d_phi = glm::two_pi<float>() / static_cast<float>(major_edge_count); //change in major angle
-    float const d_theta = glm::two_pi<float>() / static_cast<float>(minor_edge_count); //change in minor angle
+    float const d_phi = glm::two_pi<float>() / static_cast<float>(major_edge_count);    // change in major angle
+    float const d_theta = glm::two_pi<float>() / static_cast<float>(minor_edge_count);  // change in minor angle
 
     size_t index = 0u;
     float phi = 0.0f;
-    for(unsigned int i = 0u; i < major_vertices_count; ++i) {
+    for (unsigned int i = 0u; i < major_vertices_count; ++i) {
         float const cos_phi = std::cos(phi);
         float const sin_phi = std::sin(phi);
         float theta = 0.0f;
-        for(unsigned int j = 0u; j < minor_vertices_count; ++j) {
+        for (unsigned int j = 0u; j < minor_vertices_count; ++j) {
             float const cos_theta = std::cos(theta);
             float const sin_theta = std::sin(theta);
 
@@ -294,10 +291,10 @@ parametric_shapes::createTorus(float const major_radius,
             tangents[index] = glm::vec3(-minor_radius * sin_theta * cos_phi,
                                         -minor_radius * sin_theta * sin_phi,
                                         -minor_radius * cos_theta);
-            
-            binormals[index] = glm::vec3(-(major_radius + minor_radius*cos_theta) * sin_phi,
-                                        0,
-                                        (major_radius + minor_radius*cos_theta) * cos_phi);
+
+            binormals[index] = glm::vec3(-(major_radius + minor_radius * cos_theta) * sin_phi,
+                                         0,
+                                         (major_radius + minor_radius * cos_theta) * cos_phi);
 
             normals[index] = glm::cross(tangents[index], binormals[index]);
 
@@ -308,16 +305,16 @@ parametric_shapes::createTorus(float const major_radius,
     }
     auto index_set = std::vector<glm::uvec3>(2u * major_edge_count * minor_edge_count);
     index = 0u;
-    for(unsigned int i = 0; i < major_edge_count; i++) {
-        for(unsigned int j = 0; j < minor_edge_count; j++) {
+    for (unsigned int i = 0; i < major_edge_count; i++) {
+        for (unsigned int j = 0; j < minor_edge_count; j++) {
             index_set[index] = glm::uvec3(minor_vertices_count * i + j,
-                                        minor_vertices_count * i + j + 1,
-                                        minor_vertices_count * (i + 1) + j + 1);
+                                          minor_vertices_count * i + j + 1,
+                                          minor_vertices_count * (i + 1) + j + 1);
             index++;
 
             index_set[index] = glm::uvec3(minor_vertices_count * i + j,
-                                        minor_vertices_count * (i + 1) + j + 1,
-                                        minor_vertices_count * (i + 1) + j);
+                                          minor_vertices_count * (i + 1) + j + 1,
+                                          minor_vertices_count * (i + 1) + j);
 
             index++;
         }
