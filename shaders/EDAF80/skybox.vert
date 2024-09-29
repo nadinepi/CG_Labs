@@ -19,14 +19,16 @@ uniform mat4 vertex_world_to_clip;
 // same structure as in (for input), with matching name for the structure
 // members and matching structure type. Have a look at
 // shaders/EDAF80/diffuse.frag.
-out vec3 texCoords;
+out VS_OUT {
+	vec3 texcoord;
+} vs_out;
 
 
 void main()
 {
 	vec4 pos = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0f);
 	gl_Position = vec4(pos.x, pos.y, pos.w, pos.w); // set z coordinate to w to make sure it is always far away
-	texCoords = vec3(vertex.x, vertex.y, -vertex.z);
+	vs_out.texcoord = vec3(vertex.x, vertex.y, -vertex.z);
 }
 
 
