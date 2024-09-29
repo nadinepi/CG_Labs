@@ -41,7 +41,7 @@ edaf80::Assignment2::~Assignment2() {
 
 void edaf80::Assignment2::run() {
     // Load the sphere geometry
-    auto const shape = parametric_shapes::createCircleRing(0.5f, 0.4f, 40u, 4u);
+    auto const shape = parametric_shapes::createSphere(1.0f, 3u, 3u);
     if (shape.vao == 0u)
         return;
 
@@ -134,24 +134,24 @@ void edaf80::Assignment2::run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
-    auto const control_point_sphere = parametric_shapes::createSphere(0.1f, 20u, 20u);
-    std::array<glm::vec3, 9> control_point_locations = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 1.8f, 1.0f),
-        glm::vec3(2.0f, 1.2f, 2.0f),
-        glm::vec3(3.0f, 3.0f, 3.0f),
-        glm::vec3(3.0f, 0.0f, 3.0f),
-        glm::vec3(-2.0f, -1.0f, 3.0f),
-        glm::vec3(-3.0f, -3.0f, -3.0f),
-        glm::vec3(-2.0f, -1.2f, -2.0f),
-        glm::vec3(-1.0f, -1.8f, -1.0f)};
-    std::array<Node, control_point_locations.size()> control_points;
-    for (std::size_t i = 0; i < control_point_locations.size(); ++i) {
-        auto& control_point = control_points[i];
-        control_point.set_geometry(control_point_sphere);
-        control_point.set_program(&diffuse_shader, set_uniforms);
-        control_point.get_transform().SetTranslate(control_point_locations[i]);
-    }
+    // auto const control_point_sphere = parametric_shapes::createSphere(0.1f, 5u, 5u);
+    // std::array<glm::vec3, 9> control_point_locations = {
+    //     glm::vec3(0.0f, 0.0f, 0.0f),
+    //     glm::vec3(1.0f, 1.8f, 1.0f),
+    //     glm::vec3(2.0f, 1.2f, 2.0f),
+    //     glm::vec3(3.0f, 3.0f, 3.0f),
+    //     glm::vec3(3.0f, 0.0f, 3.0f),
+    //     glm::vec3(-2.0f, -1.0f, 3.0f),
+    //     glm::vec3(-3.0f, -3.0f, -3.0f),
+    //     glm::vec3(-2.0f, -1.2f, -2.0f),
+    //     glm::vec3(-1.0f, -1.8f, -1.0f)};
+    // std::array<Node, control_point_locations.size()> control_points;
+    // for (std::size_t i = 0; i < control_point_locations.size(); ++i) {
+    //     auto& control_point = control_points[i];
+    //     control_point.set_geometry(control_point_sphere);
+    //     control_point.set_program(&diffuse_shader, set_uniforms);
+    //     control_point.get_transform().SetTranslate(control_point_locations[i]);
+    // }
 
     auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -206,32 +206,32 @@ void edaf80::Assignment2::run() {
         if (interpolate) {
             //! \todo Interpolate the movement of a shape between various
             //!        control points.
-            if (use_linear) {
-                int cp1 = std::fmod(elapsed_time_s, 9.0f);
-                int cp2 = std::fmod(elapsed_time_s + 1, 9.0f);
-                glm::vec3 interpolated_position = interpolation::evalLERP(control_point_locations[cp1], control_point_locations[cp2], std::fmod(elapsed_time_s, 1.0f));
-                circle_rings.get_transform().SetTranslate(interpolated_position);
+            // if (use_linear) {
+            //     int cp1 = std::fmod(elapsed_time_s, 9.0f);
+            //     int cp2 = std::fmod(elapsed_time_s + 1, 9.0f);
+            //     glm::vec3 interpolated_position = interpolation::evalLERP(control_point_locations[cp1], control_point_locations[cp2], std::fmod(elapsed_time_s, 1.0f));
+            //     circle_rings.get_transform().SetTranslate(interpolated_position);
 
-            } else {
-                //! \todo Compute the interpolated position
-                //!       using the Catmull-Rom interpolation;
-                //!       use the `catmull_rom_tension`
-                //!       variable as your tension argument.
-                int cp1 = std::fmod(elapsed_time_s, 9.0f);
-                int cp2 = std::fmod(elapsed_time_s + 1, 9.0f);
-                int cp3 = std::fmod(elapsed_time_s + 2, 9.0f);
-                int cp4 = std::fmod(elapsed_time_s + 3, 9.0f);
-                glm::vec3 interpolated_position = interpolation::evalCatmullRom(control_point_locations[cp1], control_point_locations[cp2], control_point_locations[cp3], control_point_locations[cp4], catmull_rom_tension, std::fmod(elapsed_time_s, 1.0f));
-                circle_rings.get_transform().SetTranslate(interpolated_position);
-            }
+            // } else {
+            //     //! \todo Compute the interpolated position
+            //     //!       using the Catmull-Rom interpolation;
+            //     //!       use the `catmull_rom_tension`
+            //     //!       variable as your tension argument.
+            //     int cp1 = std::fmod(elapsed_time_s, 9.0f);
+            //     int cp2 = std::fmod(elapsed_time_s + 1, 9.0f);
+            //     int cp3 = std::fmod(elapsed_time_s + 2, 9.0f);
+            //     int cp4 = std::fmod(elapsed_time_s + 3, 9.0f);
+            //     glm::vec3 interpolated_position = interpolation::evalCatmullRom(control_point_locations[cp1], control_point_locations[cp2], control_point_locations[cp3], control_point_locations[cp4], catmull_rom_tension, std::fmod(elapsed_time_s, 1.0f));
+            //     circle_rings.get_transform().SetTranslate(interpolated_position);
+            // }
         }
 
         circle_rings.render(mCamera.GetWorldToClipMatrix());
-        if (show_control_points) {
-            for (auto const& control_point : control_points) {
-                control_point.render(mCamera.GetWorldToClipMatrix());
-            }
-        }
+        // if (show_control_points) {
+        //     for (auto const& control_point : control_points) {
+        //         control_point.render(mCamera.GetWorldToClipMatrix());
+        //     }
+        // }
 
         bool const opened = ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_None);
         if (opened) {

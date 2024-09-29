@@ -168,6 +168,13 @@ parametric_shapes::createSphere(float const radius,
             auto const n = glm::cross(t, b);
             normals[index] = n;
 
+            // texture coordinates
+            texcoords[index] = glm::vec3(static_cast<float>(j) / (static_cast<float>(longitude_edges_count)),
+                                         static_cast<float>(i) / (static_cast<float>(latitude_edges_count)),
+                                         0.0f);
+
+            std::cout << static_cast<float>(j) / (static_cast<float>(longitude_edges_count)) << std::endl;
+
             theta += d_theta;
             ++index;
         }
