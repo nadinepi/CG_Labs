@@ -26,8 +26,8 @@ out VS_OUT {
 
 void main()
 {
+	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0f); // set z coordinate to w to make sure it is always far away
 	vs_out.texcoord = vertex;
-	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0);
 }
 
 
