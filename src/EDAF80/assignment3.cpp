@@ -56,6 +56,17 @@ void edaf80::Assignment3::run() {
         return;
     }
 
+    GLuint default_shader = 0u;
+    program_manager.CreateAndRegisterProgram("Default",
+                                             {{ShaderType::vertex, "EDAF80/default.vert"},
+                                              {ShaderType::fragment, "EDAF80/default.frag"}},
+                                             default_shader);
+
+    if (default_shader == 0u) {
+        LogError("Failed to load default shader");
+        return;
+    }
+
     GLuint diffuse_shader = 0u;
     program_manager.CreateAndRegisterProgram("Diffuse",
                                              {{ShaderType::vertex, "EDAF80/diffuse.vert"},
@@ -94,6 +105,15 @@ void edaf80::Assignment3::run() {
 
     if (skybox_shader == 0u)
         LogError("Failed to load skybox shader");
+
+    GLuint phong_shader = 0u;
+    program_manager.CreateAndRegisterProgram("Phong",
+                                             {{ShaderType::vertex, "EDAF80/phong.vert"},
+                                              {ShaderType::fragment, "EDAF80/phong.frag"}},
+                                             phong_shader);
+
+    if (phong_shader == 0u)
+        LogError("Failed to load phong shader");
 
     bool use_normal_mapping = false;
     auto camera_position = mCamera.mWorld.GetTranslation();
@@ -139,7 +159,10 @@ void edaf80::Assignment3::run() {
     Node demo_sphere;
     demo_sphere.set_geometry(demo_shape);
     demo_sphere.set_material_constants(demo_material);
-    demo_sphere.set_program(&fallback_shader, phong_set_uniforms);
+    demo_sphere.set_program(&phong_shader, phong_set_uniforms);
+
+    GLuint leather_texture = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_coll1_2k.jpg"));
+    demo_sphere.add_texture("leather_texture", leather_texture, GL_TEXTURE_2D);
 
     glClearDepthf(1.0f);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
