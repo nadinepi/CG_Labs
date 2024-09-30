@@ -149,6 +149,7 @@ void edaf80::Assignment3::run() {
 
     bool use_orbit_camera = false;
     std::int32_t demo_sphere_program_index = 0;
+    std::int32_t skybox_program_index = 1;
     auto cull_mode = bonobo::cull_mode_t::disabled;
     auto polygon_mode = bonobo::polygon_mode_t::fill;
     bool show_logs = true;
@@ -222,6 +223,10 @@ void edaf80::Assignment3::run() {
             auto demo_sphere_selection_result = program_manager.SelectProgram("Demo sphere", demo_sphere_program_index);
             if (demo_sphere_selection_result.was_selection_changed) {
                 demo_sphere.set_program(demo_sphere_selection_result.program, phong_set_uniforms);
+            }
+            auto skybox_selection_result = program_manager.SelectProgram("Skybox", skybox_program_index);
+            if (skybox_selection_result.was_selection_changed) {
+                skybox.set_program(skybox_selection_result.program, phong_set_uniforms);
             }
             ImGui::Separator();
             ImGui::Checkbox("Use normal mapping", &use_normal_mapping);

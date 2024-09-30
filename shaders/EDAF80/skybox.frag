@@ -1,11 +1,10 @@
 #version 410
 
-out vec4 frag_color;
-
 in VS_OUT {
 	vec3 texcoord;
 } fs_in;
 
+out vec4 frag_color;
 uniform samplerCube skybox;
 
 void main()
