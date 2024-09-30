@@ -16,6 +16,8 @@ layout (location = 2) in vec2 texcoord;
 uniform mat4 vertex_model_to_world;
 uniform mat4 normal_model_to_world;
 uniform mat4 vertex_world_to_clip;
+uniform vec3 light_position;
+uniform vec3 camera_position;
 
 // This is the custom output of this shader. If you want to retrieve this data
 // from another shader further down the pipeline, you need to declare the exact
@@ -24,12 +26,20 @@ uniform mat4 vertex_world_to_clip;
 // shaders/EDAF80/diffuse.frag.
 out VS_OUT {
 	vec2 texcoord;
+	vec3 fN;
+	vec3 fV;
+	vec3 fL;
 } vs_out;
 
 
 void main()
 {
 	vs_out.texcoord = texcoord.xy;
+
+	vec3 world_position = vec3(vertex_model_to_world * vec4(vertex, 1.0));
+	vs_out.fN = vec3(normal_model_to_world * vec4(normal, 0.0));
+	vs_out.fV = camera_position - world_position;
+	vs_out.fL = light_position - world_position;
 
 	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0);
 }
