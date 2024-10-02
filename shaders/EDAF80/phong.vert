@@ -29,10 +29,9 @@ uniform vec3 camera_position;
 out VS_OUT {
 	vec2 texcoord;
 	vec3 fN;
-	vec3 fL;
-	vec3 fV;
 	vec3 fT;
 	vec3 fB;
+	vec3 world_position;
 } vs_out;
 
 
@@ -41,12 +40,9 @@ void main()
 	vs_out.texcoord = texcoord.xy;
 
 	vec3 world_position = vec3(vertex_model_to_world * vec4(vertex, 1.0));
-	vs_out.fN = vec3(normal_model_to_world * vec4(normal, 0.0));
-	vs_out.fV = camera_position - world_position;
-	vs_out.fL = light_position - world_position;
-
-	vs_out.fT = tangent;
-	vs_out.fB = binormal;
+	vs_out.fN = vec3(normal_model_to_world * vec4(normal, 1.0));
+	vs_out.fT = vec3(vertex_model_to_world * vec4(tangent, 1.0));
+	vs_out.fB = vec3(vertex_model_to_world * vec4(binormal, 1.0));
 
 	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0);
 }

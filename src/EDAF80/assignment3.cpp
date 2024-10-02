@@ -154,12 +154,15 @@ void edaf80::Assignment3::run() {
     GLuint leather_normal_map = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_nor_2k.jpg"));
     demo_sphere.add_texture("leather_normal_map", leather_normal_map, GL_TEXTURE_2D);
 
+    GLuint leather_rough_map = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_rough_2k.jpg"));
+    demo_sphere.add_texture("leather_rough_map", leather_rough_map, GL_TEXTURE_2D);
+
     bonobo::material_data demo_material;
     demo_material.ambient = glm::vec3(0.1f, 0.1f, 0.1f);
-    demo_material.diffuse = glm::vec3(0.0f, 0.0f, 0.0f);
+    demo_material.diffuse = glm::vec3(0.7f, 0.4f, 0.2f);
     demo_material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
     demo_material.shininess = 10.0f;
-    auto const phong_set_uniforms = [&use_normal_mapping, &light_position, &camera_position, &demo_material, &leather_texture, &leather_normal_map](GLuint program) {
+    auto const phong_set_uniforms = [&use_normal_mapping, &light_position, &camera_position, &demo_material, &leather_texture, &leather_normal_map, &leather_rough_map](GLuint program) {
         glUniform1i(glGetUniformLocation(program, "use_normal_mapping"), use_normal_mapping ? 1 : 0);
         glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
         glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
@@ -209,6 +212,7 @@ void edaf80::Assignment3::run() {
             mCamera.mWorld.LookAt(glm::vec3(0.0f));
         }
         camera_position = mCamera.mWorld.GetTranslation();
+        glm::mat4 translation = glm::translate(glm::mat4(1.0f), camera_position);
 
         if (inputHandler.GetKeycodeState(GLFW_KEY_R) & JUST_PRESSED) {
             shader_reload_failed = !program_manager.ReloadAllPrograms();
@@ -241,7 +245,9 @@ void edaf80::Assignment3::run() {
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         bonobo::changePolygonMode(polygon_mode);
 
-        skybox.render(mCamera.GetWorldToClipMatrix());
+        glDisable(GL_DEPTH_TEST);
+        skybox.render(mCamera.GetWorldToClipMatrix() * translation);
+        glEnable(GL_DEPTH_TEST);
         demo_sphere.render(mCamera.GetWorldToClipMatrix());
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
