@@ -139,7 +139,7 @@ void edaf80::Assignment3::run() {
 
     skybox.add_texture("skybox", cubemap, GL_TEXTURE_CUBE_MAP);
 
-    auto demo_shape = parametric_shapes::createSphere(1.5f, 40u, 40u);
+    auto demo_shape = parametric_shapes::createSphere(1.5f, 100u, 100u);
     if (demo_shape.vao == 0u) {
         LogError("Failed to retrieve the mesh for the demo sphere");
         return;

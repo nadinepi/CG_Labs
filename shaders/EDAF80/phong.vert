@@ -41,8 +41,9 @@ void main()
 
 	vec3 world_position = vec3(vertex_model_to_world * vec4(vertex, 1.0));
 	vs_out.fN = vec3(normal_model_to_world * vec4(normal, 1.0));
-	vs_out.fT = vec3(vertex_model_to_world * vec4(tangent, 1.0));
-	vs_out.fB = vec3(vertex_model_to_world * vec4(binormal, 1.0));
+	vs_out.fT = vec3(normal_model_to_world * vec4(tangent, 1.0));
+	vs_out.fB = vec3(normal_model_to_world * vec4(binormal, 1.0));
+	vs_out.world_position = world_position;
 
 	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0);
 }

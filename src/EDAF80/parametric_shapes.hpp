@@ -4,6 +4,8 @@
 
 namespace parametric_shapes
 {
+	bonobo::mesh_data createCylinder(float const radius, float const length, unsigned int const radial_split_count, unsigned int const length_split_count);
+
 	//! \brief Create a quad a given tesselation level and make it
 	//!        available to OpenGL.
 	//!
@@ -37,7 +39,7 @@ namespace parametric_shapes
 	//! @param latitude_split_count the number of times the latitude angle
 	//!                             should be split: 0 means each
 	//!                             latitudinal line consist of a single
-	//!                             edge spanning the full 180°, with 1 you
+	//!                             edge spanning the full 180°, with one you
 	//!                             get two edges (each spanning 90°); 1 is
 	//!                             the minimum for getting a 3-D shape.
 	//! @return wrapper around OpenGL objects' name containing the geometry
