@@ -4,6 +4,8 @@
 #include <tinyfiledialogs.h>
 
 #include <clocale>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
 
@@ -14,6 +16,23 @@
 #include "core/helpers.hpp"
 #include "core/node.hpp"
 #include "parametric_shapes.hpp"
+
+struct Planet {
+    Node node;
+    glm::vec3 position;
+};
+
+Planet createPlanet(Node& planet_node) {
+    Planet planet;
+    planet.node = planet_node;
+
+    float radius = 1.0f;
+    // Set initial position
+    float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
+    planet.position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
+
+    return planet;
+}
 
 edaf80::Assignment5::Assignment5(WindowManager& windowManager) : mCamera(0.5f * glm::half_pi<float>(),
                                                                          static_cast<float>(config::resolution_x) / static_cast<float>(config::resolution_y),
@@ -91,9 +110,6 @@ void edaf80::Assignment5::run() {
     };
 
     float elapsed_time_s = 0.0f;
-    auto const planet_set_uniforms = [&elapsed_time_s](GLuint program) {
-        glUniform1f(glGetUniformLocation(program, "elapsed_time_s"), elapsed_time_s);
-    };
 
     auto sphere = parametric_shapes::createSphere(0.4f, 30u, 30u);
     auto player = Node();
@@ -112,22 +128,6 @@ void edaf80::Assignment5::run() {
     GLuint leather_rough_map = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_rough_2k.jpg"));
     player.add_texture("roughness_map", leather_rough_map, GL_TEXTURE_2D);
 
-    auto earth_sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
-    auto earth = Node();
-    earth.set_geometry(earth_sphere);
-    earth.set_program(&planet_shader, planet_set_uniforms);
-
-    GLuint earth_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_earth_daymap.jpg"));
-    earth.add_texture("diffuse_texture", earth_texture, GL_TEXTURE_2D);
-
-    auto jupiter_sphere = parametric_shapes::createSphere(0.5f, 30u, 30u);
-    auto jupiter = Node();
-    jupiter.set_geometry(jupiter_sphere);
-    jupiter.set_program(&planet_shader, planet_set_uniforms);
-
-    GLuint jupiter_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_jupiter.jpg"));
-    jupiter.add_texture("diffuse_texture", jupiter_texture, GL_TEXTURE_2D);
-
     glClearDepthf(1.0f);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -140,6 +140,19 @@ void edaf80::Assignment5::run() {
     bool show_basis = false;
     float basis_thickness_scale = 1.0f;
     float basis_length_scale = 1.0f;
+
+    std::vector<Planet> planets;
+    float radius = 1.0f;
+
+    auto earth_sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
+    auto planet = Node();
+    planet.set_geometry(earth_sphere);
+    planet.set_program(&planet_shader);
+    GLuint planet_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_earth_daymap.jpg"));
+    planet.add_texture("diffuse_texture", planet_texture, GL_TEXTURE_2D);
+
+    // Initialize planets
+    planets.push_back(createPlanet(planet));
 
     while (!glfwWindowShouldClose(window)) {
         auto const nowTime = std::chrono::high_resolution_clock::now();
@@ -222,13 +235,30 @@ void edaf80::Assignment5::run() {
             if (player_velocity.x != 0.0f && player_velocity.y != 0.0f) {
                 player_final_velocity *= .7070f;
             }
+
             player_position += player_final_velocity * dt;
             glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), player_position);
             player.render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
 
-            earth.render(mCamera.GetWorldToClipMatrix(), glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)));
+            for (size_t i = 0; i < planets.size();) {
+                planets[i].position.z += dt * 7.0f;  // Move towards the camera
 
-            jupiter.render(mCamera.GetWorldToClipMatrix(), glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)));
+                if (planets[i].position.z >= 6.0f) {
+                    planets.erase(planets.begin() + i);
+
+                    auto new_planet = Node();
+                    new_planet.set_geometry(earth_sphere);
+                    new_planet.set_program(&planet_shader);
+                    GLuint planet_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_earth_daymap.jpg"));
+                    new_planet.add_texture("diffuse_texture", planet_texture, GL_TEXTURE_2D);
+
+                    planets.push_back(createPlanet(new_planet));  // Add a new planet
+                } else {
+                    glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), planets[i].position);
+                    planets[i].node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
+                    ++i;
+                }
+            }
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
