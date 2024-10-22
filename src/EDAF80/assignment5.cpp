@@ -283,9 +283,16 @@ void edaf80::Assignment5::run() {
                 planets.push_back(np);  // Add a new planet
             }
 
+            for (auto& planet : planets) {
+                auto curr_planet = planet;
+                auto curr_planet_pos = curr_planet.position;
+
+                glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), curr_planet_pos);
+                curr_planet.node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
+            }
+
             for (size_t i = 0; i < planets.size(); ++i) {
                 auto curr_planet = planets[i];
-
                 auto curr_planet_pos = curr_planet.position;
 
                 planets[i].position.z += dt * 6.0f;  // Move towards the camera
@@ -295,15 +302,11 @@ void edaf80::Assignment5::run() {
                 if (distance_to_planet < player_radius + curr_planet.radius) {
                     planets.erase(planets.begin() + i);
                     ++ate;
-                    printf("Ate: %d\n", ate);
                 }
 
                 if (curr_planet.position.z >= 6.0f) {
                     planets.erase(planets.begin() + i);
                 }
-
-                glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), curr_planet_pos);
-                curr_planet.node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
             }
         }
 
@@ -313,6 +316,11 @@ void edaf80::Assignment5::run() {
         // Todo: If you want a custom ImGUI window, you can set it up
         //       here
         //
+
+        ImGui::Begin("Ate Count");
+        ImGui::Text("Ate: %d", ate);
+        ImGui::End();
+
         bool const opened = ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_None);
         if (opened) {
             ImGui::Checkbox("Show basis", &show_basis);
