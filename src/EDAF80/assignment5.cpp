@@ -133,6 +133,8 @@ void edaf80::Assignment5::run() {
     std::vector<Planet> planets;
     float radius = 1.0f;
 
+    int ate = 0;
+
     // Initialize planets
     auto earth_sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
     auto mercury_sphere = parametric_shapes::createSphere(0.1f, 30u, 30u);
@@ -223,7 +225,7 @@ void edaf80::Assignment5::run() {
         //
         // Todo: If you need to handle inputs, you can do it here
         //
-        std::cout << player_velocity.x << std::endl;
+        // std::cout << player_velocity.x << std::endl;
         if (inputHandler.GetKeycodeState(GLFW_KEY_A) & JUST_PRESSED) {
             player_velocity.x = -player_speed;
         } else if ((inputHandler.GetKeycodeState(GLFW_KEY_A) & JUST_RELEASED) && player_velocity.x < 0.0f) {
@@ -292,6 +294,8 @@ void edaf80::Assignment5::run() {
 
                 if (distance_to_planet < player_radius + curr_planet.radius) {
                     planets.erase(planets.begin() + i);
+                    ++ate;
+                    printf("Ate: %d\n", ate);
                 }
 
                 if (curr_planet.position.z >= 6.0f) {
