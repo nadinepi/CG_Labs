@@ -22,18 +22,6 @@ struct Planet {
     glm::vec3 position;
 };
 
-Planet createPlanet(Node& planet_node) {
-    Planet planet;
-    planet.node = planet_node;
-
-    float radius = 1.0f;
-    // Set initial position
-    float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
-    planet.position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
-
-    return planet;
-}
-
 edaf80::Assignment5::Assignment5(WindowManager& windowManager) : mCamera(0.5f * glm::half_pi<float>(),
                                                                          static_cast<float>(config::resolution_x) / static_cast<float>(config::resolution_y),
                                                                          0.01f, 1000.0f),
@@ -144,6 +132,7 @@ void edaf80::Assignment5::run() {
     std::vector<Planet> planets;
     float radius = 1.0f;
 
+    // Initialize planets
     auto earth_sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
     auto mercury_sphere = parametric_shapes::createSphere(0.1f, 30u, 30u);
     auto venus_sphere = parametric_shapes::createSphere(0.15f, 30u, 30u);
@@ -181,8 +170,11 @@ void edaf80::Assignment5::run() {
     planet.set_program(&planet_shader);
     planet.add_texture("diffuse_texture", selected_planet_data.first, GL_TEXTURE_2D);
 
-    // Initialize planets
-    planets.push_back(createPlanet(planet));
+    // Set initial position
+    float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
+    auto position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
+    Planet np = {planet, position};
+    planets.push_back(np);  // Add a new planet
 
     while (!glfwWindowShouldClose(window)) {
         auto const nowTime = std::chrono::high_resolution_clock::now();
@@ -276,13 +268,47 @@ void edaf80::Assignment5::run() {
                 if (planets[i].position.z >= 6.0f) {
                     planets.erase(planets.begin() + i);
 
-                    auto new_planet = Node();
-                    new_planet.set_geometry(earth_sphere);
-                    new_planet.set_program(&planet_shader);
-                    GLuint planet_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_earth_daymap.jpg"));
-                    new_planet.add_texture("diffuse_texture", planet_texture, GL_TEXTURE_2D);
+                    auto earth_sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
+                    auto mercury_sphere = parametric_shapes::createSphere(0.1f, 30u, 30u);
+                    auto venus_sphere = parametric_shapes::createSphere(0.15f, 30u, 30u);
+                    auto mars_sphere = parametric_shapes::createSphere(0.2f, 30u, 30u);
+                    auto jupiter_sphere = parametric_shapes::createSphere(0.5f, 30u, 30u);
+                    auto saturn_sphere = parametric_shapes::createSphere(0.4f, 30u, 30u);
+                    auto uranus_sphere = parametric_shapes::createSphere(0.3f, 30u, 30u);
+                    auto neptune_sphere = parametric_shapes::createSphere(0.3f, 30u, 30u);
 
-                    planets.push_back(createPlanet(new_planet));  // Add a new planet
+                    GLuint earth_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_earth_daymap.jpg"));
+                    GLuint mercury_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_mercury.jpg"));
+                    GLuint venus_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_venus_atmosphere.jpg"));
+                    GLuint mars_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_mars.jpg"));
+                    GLuint jupiter_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_jupiter.jpg"));
+                    GLuint saturn_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_saturn.jpg"));
+                    GLuint uranus_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_uranus.jpg"));
+                    GLuint neptune_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_neptune.jpg"));
+
+                    std::vector<std::pair<GLuint, std::shared_ptr<bonobo::mesh_data>>> planet_data = {
+                        {earth_texture, std::make_shared<bonobo::mesh_data>(earth_sphere)},
+                        {mercury_texture, std::make_shared<bonobo::mesh_data>(mercury_sphere)},
+                        {venus_texture, std::make_shared<bonobo::mesh_data>(venus_sphere)},
+                        {mars_texture, std::make_shared<bonobo::mesh_data>(mars_sphere)},
+                        {jupiter_texture, std::make_shared<bonobo::mesh_data>(jupiter_sphere)},
+                        {saturn_texture, std::make_shared<bonobo::mesh_data>(saturn_sphere)},
+                        {uranus_texture, std::make_shared<bonobo::mesh_data>(uranus_sphere)},
+                        {neptune_texture, std::make_shared<bonobo::mesh_data>(neptune_sphere)}};
+
+                    // Randomly select a planet
+                    auto random_index = glm::linearRand(0.0f, 8.0f);
+                    auto selected_planet_data = planet_data[random_index];
+
+                    auto planet = Node();
+                    planet.set_geometry(*(selected_planet_data.second));
+                    planet.set_program(&planet_shader);
+                    planet.add_texture("diffuse_texture", selected_planet_data.first, GL_TEXTURE_2D);
+                    // Set initial position
+                    float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
+                    auto position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
+                    Planet np = {planet, position};
+                    planets.push_back(np);  // Add a new planet
                 } else {
                     glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), planets[i].position);
                     planets[i].node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
