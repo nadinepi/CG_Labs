@@ -262,30 +262,31 @@ void edaf80::Assignment5::run() {
             glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), player_position);
             player.render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
 
-            for (size_t i = 0; i < planets.size();) {
-                planets[i].position.z += dt * 7.0f;  // Move towards the camera
+            if (glm::linearRand(0.0f, 10.0f) > 9.9f) {
+                // Randomly select a planet
+                auto random_index = glm::linearRand(0.0f, 8.0f);
+                auto selected_planet_data = planet_data[random_index];
+
+                auto planet = Node();
+                planet.set_geometry(*(selected_planet_data.second));
+                planet.set_program(&planet_shader);
+                planet.add_texture("diffuse_texture", selected_planet_data.first, GL_TEXTURE_2D);
+                // Set initial position
+                float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
+                auto position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
+                Planet np = {planet, position};
+                planets.push_back(np);  // Add a new planet
+            }
+
+            for (size_t i = 0; i < planets.size(); ++i) {
+                planets[i].position.z += dt * 6.0f;  // Move towards the camera
 
                 if (planets[i].position.z >= 6.0f) {
                     planets.erase(planets.begin() + i);
-
-                    // Randomly select a planet
-                    auto random_index = glm::linearRand(0.0f, 8.0f);
-                    auto selected_planet_data = planet_data[random_index];
-
-                    auto planet = Node();
-                    planet.set_geometry(*(selected_planet_data.second));
-                    planet.set_program(&planet_shader);
-                    planet.add_texture("diffuse_texture", selected_planet_data.first, GL_TEXTURE_2D);
-                    // Set initial position
-                    float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
-                    auto position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
-                    Planet np = {planet, position};
-                    planets.push_back(np);  // Add a new planet
-                } else {
-                    glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), planets[i].position);
-                    planets[i].node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
-                    ++i;
                 }
+
+                glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), planets[i].position);
+                planets[i].node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
             }
         }
 
