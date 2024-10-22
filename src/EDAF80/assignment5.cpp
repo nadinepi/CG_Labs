@@ -316,7 +316,7 @@ void edaf80::Assignment5::run() {
         // Todo: If you want a custom ImGUI window, you can set it up
         //       here
         //
-
+        ImGui::SetNextWindowSize(ImVec2(100, 60), ImGuiCond_Always);  // Adjust the size as needed
         ImGui::Begin("Ate Count");
         ImGui::Text("Ate: %d", ate);
         ImGui::End();
