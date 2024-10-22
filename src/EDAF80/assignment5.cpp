@@ -20,6 +20,7 @@
 struct Planet {
     Node node;
     glm::vec3 position;
+    float radius;
 };
 
 edaf80::Assignment5::Assignment5(WindowManager& windowManager) : mCamera(0.5f * glm::half_pi<float>(),
@@ -98,8 +99,8 @@ void edaf80::Assignment5::run() {
     };
 
     float elapsed_time_s = 0.0f;
-
-    auto sphere = parametric_shapes::createSphere(0.4f, 30u, 30u);
+    auto player_radius = 0.4f;
+    auto sphere = parametric_shapes::createSphere(player_radius, 30u, 30u);
     auto player = Node();
     player.set_geometry(sphere);
     player.set_program(&phong_shader, phong_set_uniforms);
@@ -151,15 +152,17 @@ void edaf80::Assignment5::run() {
     GLuint uranus_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_uranus.jpg"));
     GLuint neptune_texture = bonobo::loadTexture2D(config::resources_path("planets/2k_neptune.jpg"));
 
-    std::vector<std::pair<GLuint, std::shared_ptr<bonobo::mesh_data>>> planet_data = {
-        {earth_texture, std::make_shared<bonobo::mesh_data>(earth_sphere)},
-        {mercury_texture, std::make_shared<bonobo::mesh_data>(mercury_sphere)},
-        {venus_texture, std::make_shared<bonobo::mesh_data>(venus_sphere)},
-        {mars_texture, std::make_shared<bonobo::mesh_data>(mars_sphere)},
-        {jupiter_texture, std::make_shared<bonobo::mesh_data>(jupiter_sphere)},
-        {saturn_texture, std::make_shared<bonobo::mesh_data>(saturn_sphere)},
-        {uranus_texture, std::make_shared<bonobo::mesh_data>(uranus_sphere)},
-        {neptune_texture, std::make_shared<bonobo::mesh_data>(neptune_sphere)}};
+    std::vector<float> planet_radius = {0.25f, 0.1f, 0.15f, 0.2f, 0.5f, 0.4f, 0.3f, 0.3f};
+
+    std::vector<std::pair<GLuint, std::shared_ptr<bonobo::mesh_data>>> planet_data =
+        {{earth_texture, std::make_shared<bonobo::mesh_data>(earth_sphere)},
+         {mercury_texture, std::make_shared<bonobo::mesh_data>(mercury_sphere)},
+         {venus_texture, std::make_shared<bonobo::mesh_data>(venus_sphere)},
+         {mars_texture, std::make_shared<bonobo::mesh_data>(mars_sphere)},
+         {jupiter_texture, std::make_shared<bonobo::mesh_data>(jupiter_sphere)},
+         {saturn_texture, std::make_shared<bonobo::mesh_data>(saturn_sphere)},
+         {uranus_texture, std::make_shared<bonobo::mesh_data>(uranus_sphere)},
+         {neptune_texture, std::make_shared<bonobo::mesh_data>(neptune_sphere)}};
 
     // Randomly select a planet
     auto random_index = glm::linearRand(0.0f, 8.0f);
@@ -173,7 +176,7 @@ void edaf80::Assignment5::run() {
     // Set initial position
     float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
     auto position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
-    Planet np = {planet, position};
+    Planet np = {planet, position, planet_radius[random_index]};
     planets.push_back(np);  // Add a new planet
 
     while (!glfwWindowShouldClose(window)) {
@@ -274,19 +277,29 @@ void edaf80::Assignment5::run() {
                 // Set initial position
                 float angle = glm::linearRand(0.0f, 2.0f * glm::pi<float>());
                 auto position = glm::vec3(radius * cos(angle), radius * sin(angle), -20.0f);
-                Planet np = {planet, position};
+                Planet np = {planet, position, planet_radius[random_index]};
                 planets.push_back(np);  // Add a new planet
             }
 
             for (size_t i = 0; i < planets.size(); ++i) {
+                auto curr_planet = planets[i];
+
+                auto curr_planet_pos = curr_planet.position;
+
                 planets[i].position.z += dt * 6.0f;  // Move towards the camera
 
-                if (planets[i].position.z >= 6.0f) {
+                auto distance_to_planet = glm::distance(player_position, curr_planet_pos);
+
+                if (distance_to_planet < player_radius + curr_planet.radius) {
                     planets.erase(planets.begin() + i);
                 }
 
-                glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), planets[i].position);
-                planets[i].node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
+                if (curr_planet.position.z >= 6.0f) {
+                    planets.erase(planets.begin() + i);
+                }
+
+                glm::mat4 planet_transformation_matrix = glm::translate(glm::mat4(1.0f), curr_planet_pos);
+                curr_planet.node.render(mCamera.GetWorldToClipMatrix(), planet_transformation_matrix);
             }
         }
 
