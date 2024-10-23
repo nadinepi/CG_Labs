@@ -62,6 +62,7 @@ void edaf80::Assignment5::run() {
     auto camera_position = mCamera.mWorld.GetTranslation();
     auto light_position = glm::vec3(0.0f, 6.0f, 5.0f);
     float elapsed_time_s = 0.0f;
+    int ate = 0;
 
     // Create the shader programs
     ShaderProgramManager program_manager;
@@ -108,8 +109,9 @@ void edaf80::Assignment5::run() {
         return;
     }
 
-    auto const tube_set_uniforms = [&elapsed_time_s](GLuint program) {
+    auto const tube_set_uniforms = [&elapsed_time_s, &ate](GLuint program) {
         glUniform1f(glGetUniformLocation(program, "elapsed_time_s"), elapsed_time_s);
+        glUniform1i(glGetUniformLocation(program, "ate"), ate);
     };
 
     //
@@ -173,8 +175,6 @@ void edaf80::Assignment5::run() {
 
     std::vector<Planet> planets;
     float radius = 1.0f;
-
-    int ate = 0;
 
     // Initialize planets
     auto earth_sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
