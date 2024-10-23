@@ -133,6 +133,7 @@ void edaf80::Assignment5::run() {
     glm::vec3 player_velocity = glm::vec3(0.0f, 0.0f, 0.0f);
     float segment_distance = .4f;
     float player_speed = 5.0f;
+    float player_radius = 0.25f;
     std::vector<Node> worm;
     std::vector<WormSegment> segments;
 
@@ -360,11 +361,13 @@ void edaf80::Assignment5::run() {
 
                 planets[i].position.z += dt * 6.0f;  // Move towards the camera
 
-                auto distance_to_planet = glm::distance(player_position, curr_planet_pos);
+                for (auto& worm_segment : segments) {
+                    auto distance_to_planet = glm::distance(worm_segment.pos, curr_planet_pos);
 
-                if (distance_to_planet < player_radius + curr_planet.radius) {
-                    planets.erase(planets.begin() + i);
-                    ++ate;
+                    if (distance_to_planet < player_radius + curr_planet.radius) {
+                        planets.erase(planets.begin() + i);
+                        ++ate;
+                    }
                 }
 
                 if (curr_planet.position.z >= 6.0f) {
@@ -373,20 +376,6 @@ void edaf80::Assignment5::run() {
             }
             glm::mat4 tube_transformation_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -9000.0f));
             hole.render(mCamera.GetWorldToClipMatrix(), tube_transformation_matrix);
-        }
-
-        if (!shader_reload_failed) {
-            //
-            // Todo: Render all your geometry here.
-            //
-            glm::vec3 player_final_velocity = player_velocity;
-            if (player_velocity.x != 0.0f && player_velocity.y != 0.0f) {
-                player_final_velocity *= .7070f;
-            }
-
-            player_position += player_final_velocity * dt;
-            glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), player_position);
-            player.render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
