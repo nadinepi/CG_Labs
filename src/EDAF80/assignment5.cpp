@@ -323,7 +323,7 @@ void edaf80::Assignment5::run() {
                     if (magnitude != 0) {
                         direction = (1.0f / magnitude) * diff;
                     }
-                    std::cout << direction << std::endl;
+                    // std::cout << direction << std::endl;
                     segments[seg].velocity = 15.0f * distance * direction;
                 }
                 glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), segments[seg].pos);
@@ -359,7 +359,7 @@ void edaf80::Assignment5::run() {
                 auto curr_planet = planets[i];
                 auto curr_planet_pos = curr_planet.position;
 
-                planets[i].position.z += dt * 6.0f;  // Move towards the camera
+                planets[i].position.z += dt * (6.0f + (ate >> 2));  // Move towards the camera
 
                 for (auto& worm_segment : segments) {
                     auto distance_to_planet = glm::distance(worm_segment.pos, curr_planet_pos);
