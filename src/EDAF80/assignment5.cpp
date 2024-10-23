@@ -326,6 +326,23 @@ void edaf80::Assignment5::run() {
                     // std::cout << direction << std::endl;
                     segments[seg].velocity = 15.0f * distance * direction;
                 }
+                // don't let the worm get out of the screen
+                float screen_limit_x = 2.5f;
+                float screen_limit_y = 1.5f;
+
+                if (segments[0].pos.x > screen_limit_x) {
+                    segments[0].pos.x = screen_limit_x;
+                }
+                if (segments[0].pos.x < -screen_limit_x) {
+                    segments[0].pos.x = -screen_limit_x;
+                }
+                if (segments[0].pos.y > screen_limit_y) {
+                    segments[0].pos.y = screen_limit_y;
+                }
+                if (segments[0].pos.y < -screen_limit_y) {
+                    segments[0].pos.y = -screen_limit_y;
+                }
+
                 glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), segments[seg].pos);
                 worm[i].render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
                 seg++;
