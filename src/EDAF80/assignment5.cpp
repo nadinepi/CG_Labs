@@ -4,9 +4,11 @@
 #include <tinyfiledialogs.h>
 
 #include <clocale>
+#include <cmath>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <list>
 #include <stdexcept>
 
 #include "config.hpp"
@@ -17,6 +19,15 @@
 #include "core/node.hpp"
 #include "parametric_shapes.hpp"
 
+struct WormSegment {
+    glm::vec3 pos;
+    glm::vec3 velocity;
+
+    WormSegment(glm::vec3 pos) {
+        this->pos = pos;
+        this->velocity = glm::vec3(0.0, 0.0, 0.0);
+    }
+};
 struct Planet {
     Node node;
     glm::vec3 position;
@@ -49,7 +60,8 @@ void edaf80::Assignment5::run() {
     mCamera.mMouseSensitivity = glm::vec2(0.003f);
     mCamera.mMovementSpeed = glm::vec3(3.0f);  // 3 m/s => 10.8 km/h
     auto camera_position = mCamera.mWorld.GetTranslation();
-    auto light_position = glm::vec3(0.0f, 2.0f, 0.0f);
+    auto light_position = glm::vec3(0.0f, 6.0f, 5.0f);
+    float elapsed_time_s = 0.0f;
 
     // Create the shader programs
     ShaderProgramManager program_manager;
@@ -86,10 +98,24 @@ void edaf80::Assignment5::run() {
     if (phong_shader == 0u)
         LogError("Failed to load phong shader");
 
+    GLuint tube_shader = 0u;
+    program_manager.CreateAndRegisterProgram("Tube",
+                                             {{ShaderType::vertex, "EDAF80/tube.vert"},
+                                              {ShaderType::fragment, "EDAF80/tube.frag"}},
+                                             tube_shader);
+    if (fallback_shader == 0u) {
+        LogError("Failed to load fallback shader");
+        return;
+    }
+
+    auto const tube_set_uniforms = [&elapsed_time_s](GLuint program) {
+        glUniform1f(glGetUniformLocation(program, "elapsed_time_s"), elapsed_time_s);
+    };
+
     //
     // Todo: Load your geometry
     //
-    glm::vec3 ambient = glm::vec3(74.0f / 255.0f, 48.0f / 255.0f, 18.0f / 255.0f) * .25f;
+    glm::vec3 ambient = glm::vec3(222.0f / 255.0f, 4.0f / 255.0f, 131.0f / 255.0f) * .25f;
     float shininess = 10.0f;
     auto const phong_set_uniforms = [&light_position, &camera_position, &ambient, &shininess](GLuint program) {
         glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
@@ -98,24 +124,38 @@ void edaf80::Assignment5::run() {
         glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
     };
 
-    float elapsed_time_s = 0.0f;
-    auto player_radius = 0.4f;
-    auto sphere = parametric_shapes::createSphere(player_radius, 30u, 30u);
-    auto player = Node();
-    player.set_geometry(sphere);
-    player.set_program(&phong_shader, phong_set_uniforms);
-    glm::vec3 player_position = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 player_velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-    float player_speed = 5.0f;
-
     GLuint leather_texture = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_coll1_2k.jpg"));
-    player.add_texture("texture_map", leather_texture, GL_TEXTURE_2D);
-
     GLuint leather_normal_map = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_nor_2k.jpg"));
-    player.add_texture("normal_map", leather_normal_map, GL_TEXTURE_2D);
-
     GLuint leather_rough_map = bonobo::loadTexture2D(config::resources_path("textures/leather_red_02_rough_2k.jpg"));
-    player.add_texture("roughness_map", leather_rough_map, GL_TEXTURE_2D);
+
+    auto sphere = parametric_shapes::createSphere(0.25f, 30u, 30u);
+    glm::vec3 player_position = glm::vec3(0.0f, -0.75f, 2.0f);
+    glm::vec3 player_velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    float segment_distance = .4f;
+    float player_speed = 5.0f;
+    std::vector<Node> worm;
+    std::vector<WormSegment> segments;
+
+    Node s;
+    for (int i = 0; i < 10; i++) {
+        Node s = Node();
+        s.set_geometry(sphere);
+        s.set_program(&phong_shader, phong_set_uniforms);
+        worm.push_back(s);
+        WormSegment ws = WormSegment(player_position + static_cast<float>(i) * glm::vec3(0.0f, 0.0f, segment_distance));
+        segments.push_back(ws);
+    }
+
+    for (int i = 0; i < worm.size(); i++) {
+        worm[i].add_texture("texture_map", leather_texture, GL_TEXTURE_2D);
+        worm[i].add_texture("normal_map", leather_normal_map, GL_TEXTURE_2D);
+        worm[i].add_texture("roughness_map", leather_rough_map, GL_TEXTURE_2D);
+    }
+
+    auto cylinder = parametric_shapes::createCylinder(5.0f, 15000.0f, 100u, 100u);
+    auto hole = Node();
+    hole.set_geometry(cylinder);
+    hole.set_program(&tube_shader, tube_set_uniforms);
 
     glClearDepthf(1.0f);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -260,12 +300,35 @@ void edaf80::Assignment5::run() {
             //
             glm::vec3 player_final_velocity = player_velocity;
             if (player_velocity.x != 0.0f && player_velocity.y != 0.0f) {
-                player_final_velocity *= .7070f;
+                player_final_velocity *= .707f;
             }
+            segments[0].pos += player_final_velocity * dt;
+            int seg = 0;
+            for (int i = 0; i < worm.size(); i++) {
+                if (seg > 0) {
+                    segments[seg].pos += segments[seg].velocity * dt;
+                    float x = segments[seg - 1].pos.x;
 
-            player_position += player_final_velocity * dt;
-            glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), player_position);
-            player.render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
+                    float y = segments[seg - 1].pos.y;
+
+                    float z = segments[seg].pos.z;
+
+                    glm::vec3 new_position = glm::vec3(x, y, z);
+
+                    float distance = glm::distance(segments[seg].pos, new_position);
+                    glm::vec3 diff = new_position - segments[seg].pos;
+                    float magnitude = std::sqrt(std::pow(diff.x, 2) + std::pow(diff.y, 2) + std::pow(diff.z, 2));
+                    glm::vec3 direction = glm::vec3(0.0, 0.0, 0.0);
+                    if (magnitude != 0) {
+                        direction = (1.0f / magnitude) * diff;
+                    }
+                    std::cout << direction << std::endl;
+                    segments[seg].velocity = 15.0f * distance * direction;
+                }
+                glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), segments[seg].pos);
+                worm[i].render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
+                seg++;
+            }
 
             if (glm::linearRand(0.0f, 10.0f) > 9.9f) {
                 // Randomly select a planet
@@ -308,6 +371,22 @@ void edaf80::Assignment5::run() {
                     planets.erase(planets.begin() + i);
                 }
             }
+            glm::mat4 tube_transformation_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -9000.0f));
+            hole.render(mCamera.GetWorldToClipMatrix(), tube_transformation_matrix);
+        }
+
+        if (!shader_reload_failed) {
+            //
+            // Todo: Render all your geometry here.
+            //
+            glm::vec3 player_final_velocity = player_velocity;
+            if (player_velocity.x != 0.0f && player_velocity.y != 0.0f) {
+                player_final_velocity *= .7070f;
+            }
+
+            player_position += player_final_velocity * dt;
+            glm::mat4 player_transformation_matrix = glm::translate(glm::mat4(1.0f), player_position);
+            player.render(mCamera.GetWorldToClipMatrix(), player_transformation_matrix);
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
